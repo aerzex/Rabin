@@ -27,7 +27,9 @@ def generate_keys(size):
     return pub_key, scrt_key
 
 
-def encrypt(pub_key, message):
+def encrypt(message):
+    with open("Rabin/src/rabin_keys/pub_key.json", "r", encoding="utf-8") as json_file:
+        pub_key = json.load(json_file)
     N = pub_key["N"]
     block_size = (N.bit_length() + 7) // 8
     hash_length = 32
@@ -53,7 +55,9 @@ def encrypt(pub_key, message):
     return enc_blocks
 
 
-def decrypt(scrt_key, enc_message):
+def decrypt(enc_message):
+    with open("Rabin/src/rabin_keys/scrt_key.json", "r", encoding="utf-8") as json_file:
+        scrt_key = json.load(json_file)
     p, q = scrt_key["prime1"], scrt_key["prime2"]
     N = p * q
     block_size = (N.bit_length() + 7) // 8
@@ -106,9 +110,8 @@ def main():
     size = int(input("Enter size of N: "))
     message_en = "If I don’t like a thing, I don’t like it, that’s all; and there is no reason under the sun why I should ape a liking for it just because the majority of my fellow-creatures like it, or make believe they like it. I can’t follow the fashions in the things I like or dislike."
     message_ru = "Если мне что-то не нравится, значит, не нравится, и все тут; так с какой стати, спрашивается, я стану делать вид, будто мне это нравится, только потому, что большинству моих соплеменников это нравится или они воображают, что нравится. Не могу я что-то любить или не любить по велению моды."
-    pub_key, scrt_key = generate_keys(size)
-    enc_message = encrypt(pub_key, message_ru)
-    dec_message = decrypt(scrt_key, enc_message)
+    enc_message = encrypt(message_ru)
+    dec_message = decrypt(enc_message)
     print(enc_message)
     print(dec_message)
 
