@@ -164,45 +164,35 @@ def algorithm_generate_prime(bit_length, k=50):
         
 def algorithm_second_degree_comparison(a, p):
     if algorithm_Yakobi_symbol(a, p) != 1:
-        raise ValueError(f"Число {a} не является квадратичным вычетом по модулю {p}.")
+        raise ValueError(f"The number {a} is not a quadratic residue modulo {p}.")
 
-    # Находим невычет N
-    N = 2
-    while algorithm_Yakobi_symbol(N, p) != -1:
-        N += 1
+    while True:
+        N = random.randint(2, p - 1) 
+        if algorithm_Yakobi_symbol(N, p) == -1:
+            break
 
-    # Вычисляем h и k: p-1 = h * 2^k
-    h = p - 1
     k = 0
+    h = p - 1
     while h % 2 == 0:
         h //= 2
         k += 1
 
-    # Инициализация
     a1 = algorithm_fast_pow(a, (h + 1) // 2, p)
     a2 = algorithm_fast_pow(a, h, p)
     N1 = algorithm_fast_pow(N, h, p)
-    N2 = algorithm_fast_pow(N, h, p)  # Здесь была ошибка: должно быть N^h mod p
+    N2 = 1
 
-    # Главный цикл
-    for i in range(k - 1):
-        b = a2
-        m = 0
-        # Находим минимальное m, где b^(2^m) ≡ 1 mod p
-        while b != 1:
-            b = algorithm_fast_pow(b, 2, p)
-            m += 1
+    for i in range(k):
+        b = a1 * N2 % p
+        c = a2 * algorithm_fast_pow(b, 2, p) % p
+        print(k - 2 -i)
+        d = algorithm_fast_pow(c, algorithm_fast_pow(2, k - 2 - i, p), p)
 
-        if m == 0:
-            break
+        j = 0 if d == 1 else 1
+        N2 = N2 * algorithm_fast_pow(N1, algorithm_fast_pow(2, i, p) * j, p) % p
 
-        # Обновляем переменные
-        t = algorithm_fast_pow(N2, 2 ** (k - m - 1), p)
-        a1 = (a1 * t) % p
-        a2 = (a2 * t * t) % p
-        N2 = algorithm_fast_pow(t, 2, p)
-
-    return [a1, p - a1]
+    x = a1 * N2 % p
+    return [x, p - x] 
 
 def algorithm_add_polynomials(a, b, p):
     length = max(len(a), len(b))
@@ -267,3 +257,24 @@ def spfunc(x, N, c=None):
         return (algorithm_fast_pow(x, 2) + 1) % N
     else:
         return (algorithm_fast_pow(x, 2) + c) % N
+
+def algorithm_all_divisors(N):
+    prime_factors = algorithm_rho_pollard_fact(N)
+    if not prime_factors:
+        return [1]  
+
+    unique_factors = list(set(prime_factors))
+    divisors = [1]
+
+    for factor in unique_factors:
+        max_power = prime_factors.count(factor)
+        current_divisors = divisors.copy()
+
+        for power in range(1, max_power + 1):
+            for d in current_divisors:
+                new_divisor = d * (factor ** power)
+                if new_divisor not in divisors:
+                    divisors.append(new_divisor)
+
+    divisors.sort()
+    return divisors
